@@ -2,7 +2,7 @@ import { expect } from 'chai';
 
 import { ethereum } from '../consts/chainMetadata';
 import { Chains } from '../consts/chains';
-import { MultiProtocolProvider } from '../providers/MultiProtocolProvider';
+import { MultiProtocolProvider } from './MultiProtocolProvider';
 
 describe('MultiProtocolProvider', () => {
   describe('constructs', () => {

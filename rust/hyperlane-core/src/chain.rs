@@ -104,6 +104,14 @@ pub enum KnownHyperlaneDomain {
     /// Cosmos local chains
     CosmosTest99990 = 99990,
     CosmosTest99991 = 99991,
+    /// Aptos mainnet
+    // AptosMainnet = 14401,
+    /// Aptos testnet
+    AptosTestnet = 14402,
+    /// Aptos localnet1
+    AptosLocalnet1 = 14411,
+    /// Aptos localnet2
+    AptosLocalnet2 = 14412,
 }
 
 #[derive(Clone)]
@@ -169,6 +177,8 @@ pub enum HyperlaneDomainProtocol {
     Sealevel,
     /// A Cosmos-based chain type which uses hyperlane-cosmos.
     Cosmos,
+    /// An Aptos movevm-based chain type which uses hyperlane-aptos.
+    Aptos,
 }
 
 impl HyperlaneDomainProtocol {
@@ -179,6 +189,7 @@ impl HyperlaneDomainProtocol {
             Fuel => format!("{:?}", addr),
             Sealevel => format!("{:?}", addr),
             Cosmos => format!("{:?}", addr),
+            Aptos => format!("{:?}", addr),
         }
     }
 }
@@ -199,9 +210,9 @@ impl KnownHyperlaneDomain {
             ],
             Testnet: [
                 Goerli, Mumbai, Fuji, ArbitrumGoerli, OptimismGoerli, BinanceSmartChainTestnet,
-                Alfajores, MoonbaseAlpha, Sepolia, PolygonZkEvmTestnet, LineaGoerli, BaseGoerli, ScrollSepolia, Chiado
+                Alfajores, MoonbaseAlpha, Sepolia, PolygonZkEvmTestnet, LineaGoerli, BaseGoerli, ScrollSepolia, Chiado, AptosTestnet
             ],
-            LocalTestChain: [Test1, Test2, Test3, FuelTest1, SealevelTest1, SealevelTest2, CosmosTest99990, CosmosTest99991],
+            LocalTestChain: [Test1, Test2, Test3, FuelTest1, SealevelTest1, SealevelTest2, CosmosTest99990, CosmosTest99991, AptosLocalnet1, AptosLocalnet2],
         })
     }
 
@@ -217,6 +228,7 @@ impl KnownHyperlaneDomain {
             HyperlaneDomainProtocol::Fuel: [FuelTest1],
             HyperlaneDomainProtocol::Sealevel: [SealevelTest1, SealevelTest2],
             HyperlaneDomainProtocol::Cosmos: [CosmosTest99990, CosmosTest99991],
+            HyperlaneDomainProtocol::Aptos: [AptosTestnet, AptosLocalnet1, AptosLocalnet2],
         })
     }
 }
@@ -376,7 +388,7 @@ impl HyperlaneDomain {
         use HyperlaneDomainProtocol::*;
         let protocol = self.domain_protocol();
         many_to_one!(match protocol {
-            IndexMode::Block: [Ethereum, Cosmos], // TODO: Is cosmos index-mode is correct?
+            IndexMode::Block: [Ethereum, Cosmos, Aptos], // TODO: Is cosmos index-mode is correct?
             IndexMode::Sequence : [Sealevel, Fuel],
         })
     }
