@@ -30,10 +30,12 @@ use crate::{
     config::Config,
     ethereum::start_anvil,
     invariants::termination_invariants_met,
+    aptos::*;
     solana::*,
     utils::{concat_path, make_static, stop_child, AgentHandles, ArbitraryData, TaskHandle},
 };
 
+mod aptos;
 mod config;
 mod ethereum;
 mod invariants;
@@ -52,23 +54,32 @@ const RELAYER_KEYS: &[&str] = &[
     // test3
     "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356",
     // sealeveltest1
-    // "0x892bf6949af4233e62f854cb3618bc1a3ee3341dc71ada08c4d5deca239acf4f",
-    // // sealeveltest2
-    // "0x892bf6949af4233e62f854cb3618bc1a3ee3341dc71ada08c4d5deca239acf4f",
+    "0x892bf6949af4233e62f854cb3618bc1a3ee3341dc71ada08c4d5deca239acf4f",
+    // sealeveltest2
+    "0x892bf6949af4233e62f854cb3618bc1a3ee3341dc71ada08c4d5deca239acf4f",
+    // aptoslocalnet1
+    "0x8cb68128b8749613f8df7612e4efd281f8d70f6d195c53a14c27fc75980446c1", // 0x8b43
+    // aptoslocalnet2
+    "0xf984db645790f569c23821273a95ee3878949e1098c29bcb0ba14101309adeae", //cc78
 ];
 /// These private keys are from hardhat/anvil's testing accounts.
 /// These must be consistent with the ISM config for the test.
 const VALIDATOR_KEYS: &[&str] = &[
     // eth
-    "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a",
-    "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba",
-    "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e",
+    // "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a",
+    // "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba",
+    // "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e",
     // sealevel
     // "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
+    // aptoslocalnet1,
+    "0xb25d6937002ecd4d79c7bdfddc0053febc8896f2109e96c45bf69efd84544cd5", // 0x21779477..
+    // aptoslocalnet2,
+    "0xe299c1e6e1f89b4ed2992782137e24d5edbfc51bb702635a85ed6b687c2b5988", // 0xef7a..
 ];
 
-const VALIDATOR_ORIGIN_CHAINS: &[&str] = &["test1", "test2", "test3"];
+// const VALIDATOR_ORIGIN_CHAINS: &[&str] = &["test1", "test2", "test3"];
 // const VALIDATOR_ORIGIN_CHAINS: &[&str] = &["test1", "test2", "test3", "sealeveltest1"];
+const VALIDATOR_ORIGIN_CHAINS: &[&str] = &["aptoslocalnet1", "aptoslocalnet2"];
 
 const AGENT_BIN_PATH: &str = "target/debug";
 const INFRA_PATH: &str = "../typescript/infra";
@@ -173,6 +184,20 @@ fn main() -> ExitCode {
         .hyp_env("CHAINS_TEST2_SIGNER_KEY", RELAYER_KEYS[1])
         // .hyp_env("CHAINS_SEALEVELTEST1_SIGNER_KEY", RELAYER_KEYS[3])
         // .hyp_env("CHAINS_SEALEVELTEST2_SIGNER_KEY", RELAYER_KEYS[4])
+        
+        .hyp_env("CHAINS_APTOSLOCALNET1_SIGNER_KEY", RELAYER_KEYS[5])
+        .hyp_env("CHAINS_APTOSLOCALNET2_SIGNER_KEY", RELAYER_KEYS[6])
+        .hyp_env("CHAINS_APTOSLOCALNET1_CONNECTION_TYPE", "httpFallback")
+        .hyp_env("CHAINS_APTOSLOCALNET2_CONNECTION_TYPE", "httpFallback")
+        .hyp_env(
+            "CHAINS_APTOSLOCALNET1_CONNECTION_URL",
+            "http://127.0.0.1:8080/v1",
+        )
+        .hyp_env(
+            "CHAINS_APTOSLOCALNET2_CONNECTION_URL",
+            "http://127.0.0.1:8080/v1",
+        )
+
         .hyp_env("RELAYCHAINS", "invalidchain,otherinvalid")
         .hyp_env("ALLOWLOCALCHECKPOINTSYNCERS", "true")
         .hyp_env(
@@ -199,8 +224,9 @@ fn main() -> ExitCode {
         .arg("defaultSigner.key", RELAYER_KEYS[2])
         .arg(
             "relayChains",
-            "test1,test2,test3",
+            // "test1,test2,test3",
             // "test1,test2,test3,sealeveltest1,sealeveltest2",
+            "aptoslocalnet1,aptoslocalnet2",
         );
 
     let base_validator_env = common_agent_env
@@ -217,6 +243,18 @@ fn main() -> ExitCode {
         )
         .hyp_env("CHAINS_TEST2_RPCCONSENSUSTYPE", "fallback")
         .hyp_env("CHAINS_TEST3_CUSTOMRPCURLS", "http://127.0.0.1:8545")
+
+        .hyp_env("CHAINS_APTOSLOCALNET1_CONNECTION_TYPE", "httpFallback")
+        .hyp_env("CHAINS_APTOSLOCALNET2_CONNECTION_TYPE", "httpFallback")
+        .hyp_env(
+            "CHAINS_APTOSLOCALNET1_CONNECTION_URL",
+            "http://127.0.0.1:8080/v1",
+        )
+        .hyp_env(
+            "CHAINS_APTOSLOCALNET2_CONNECTION_URL",
+            "http://127.0.0.1:8080/v1",
+        )
+
         .hyp_env("CHAINS_TEST1_BLOCKS_REORGPERIOD", "0")
         .hyp_env("CHAINS_TEST2_BLOCKS_REORGPERIOD", "0")
         .hyp_env("CHAINS_TEST3_BLOCKS_REORGPERIOD", "0")
@@ -271,6 +309,11 @@ fn main() -> ExitCode {
     //
     // Ready to run...
     //
+    
+    install_aptos_cli().join();
+    let aptos_local_net_runner = start_aptos_local_testnet().join();
+    state.push_agent(aptos_local_net_runner);
+    init_aptos_modules_state().join();
 
     // let (solana_path, solana_path_tempdir) = install_solana_cli_tools().join();
     // state.data.push(Box::new(solana_path_tempdir));
@@ -326,7 +369,7 @@ fn main() -> ExitCode {
     Program::new(concat_path(AGENT_BIN_PATH, "init-db"))
         .run()
         .join();
-    state.push_agent(scraper_env.spawn("SCR"));
+    // state.push_agent(scraper_env.spawn("SCR"));
 
     // Send half the kathy messages before starting the rest of the agents
     let kathy_env_single_insertion = Program::new("yarn")
@@ -334,7 +377,7 @@ fn main() -> ExitCode {
         .cmd("kathy")
         .arg("messages", (config.kathy_messages / 4).to_string())
         .arg("timeout", "1000");
-    kathy_env_single_insertion.clone().run().join();
+    // kathy_env_single_insertion.clone().run().join();
 
     let kathy_env_zero_insertion = Program::new("yarn")
         .working_dir(INFRA_PATH)
@@ -347,7 +390,7 @@ fn main() -> ExitCode {
         // replacing the `aggregationHook` with the `interchainGasPaymaster` means there
         // is no more `merkleTreeHook`, causing zero merkle insertions to occur.
         .arg("default-hook", "interchainGasPaymaster");
-    kathy_env_zero_insertion.clone().run().join();
+    // kathy_env_zero_insertion.clone().run().join();
 
     let kathy_env_double_insertion = Program::new("yarn")
         .working_dir(INFRA_PATH)
@@ -357,7 +400,7 @@ fn main() -> ExitCode {
         // replacing the `protocolFees` required hook with the `merkleTreeHook`
         // will cause double insertions to occur, which should be handled correctly
         .arg("required-hook", "merkleTreeHook");
-    kathy_env_double_insertion.clone().run().join();
+    // kathy_env_double_insertion.clone().run().join();
 
     // Send some sealevel messages before spinning up the agents, to test the backward indexing cursor
     // for _i in 0..(SOL_MESSAGES_EXPECTED / 2) {
@@ -377,12 +420,16 @@ fn main() -> ExitCode {
     //     initiate_solana_hyperlane_transfer(solana_path.clone(), solana_config_path.clone()).join();
     // }
 
+    for _i in 0..(APTOS_MESSAGES_EXPECTED / 4) {
+        aptos_send_messages().join();
+    }
+    
     log!("Setup complete! Agents running in background...");
     log!("Ctrl+C to end execution...");
 
     // Send half the kathy messages after the relayer comes up
-    kathy_env_double_insertion.clone().run().join();
-    kathy_env_zero_insertion.clone().run().join();
+    // kathy_env_double_insertion.clone().run().join();
+    // kathy_env_zero_insertion.clone().run().join();
     state.push_agent(kathy_env_single_insertion.flag("mineforever").spawn("KTY"));
 
     let loop_start = Instant::now();

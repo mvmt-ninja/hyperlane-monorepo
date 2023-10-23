@@ -20,7 +20,7 @@ import {
 } from '../contracts/types';
 import { HyperlaneDeployer } from '../deploy/HyperlaneDeployer';
 import { moduleCanCertainlyVerify } from '../ism/HyperlaneIsmFactory';
-import { RouterConfig } from '../router/types';
+import { RouterConfig } from './types';
 import { ChainMap } from '../types';
 
 export abstract class HyperlaneRouterDeployer<
