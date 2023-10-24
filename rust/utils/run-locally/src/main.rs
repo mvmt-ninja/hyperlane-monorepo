@@ -30,7 +30,7 @@ use crate::{
     config::Config,
     ethereum::start_anvil,
     invariants::termination_invariants_met,
-    aptos::*;
+    aptos::*,
     solana::*,
     utils::{concat_path, make_static, stop_child, AgentHandles, ArbitraryData, TaskHandle},
 };
@@ -311,8 +311,9 @@ fn main() -> ExitCode {
     //
     
     install_aptos_cli().join();
-    let aptos_local_net_runner = start_aptos_local_testnet().join();
-    state.push_agent(aptos_local_net_runner);
+    // let aptos_local_net_runner = start_aptos_local_testnet().join();
+    // state.push_agent(aptos_local_net_runner);
+    start_aptos_deploying().join();
     init_aptos_modules_state().join();
 
     // let (solana_path, solana_path_tempdir) = install_solana_cli_tools().join();
@@ -420,10 +421,10 @@ fn main() -> ExitCode {
     //     initiate_solana_hyperlane_transfer(solana_path.clone(), solana_config_path.clone()).join();
     // }
 
-    for _i in 0..(APTOS_MESSAGES_EXPECTED / 4) {
+    for _i in 0..5 {
         aptos_send_messages().join();
     }
-    
+
     log!("Setup complete! Agents running in background...");
     log!("Ctrl+C to end execution...");
 

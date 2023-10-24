@@ -15,6 +15,7 @@ pub use trait_builder::*;
 pub use types::*;
 pub use utils::*;
 pub use validator_announce::*;
+pub use merkle_tree_hook::*;
 
 mod interchain_gas;
 mod interchain_security_module;
@@ -24,6 +25,6 @@ mod provider;
 mod trait_builder;
 mod types;
 mod utils;
-
+mod merkle_tree_hook;
 mod client;
 mod validator_announce;
