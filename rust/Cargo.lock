@@ -5347,6 +5347,7 @@ dependencies = [
  "base64 0.21.5",
  "bcs 0.1.4",
  "borsh 0.9.3",
+ "derive-new",
  "hex 0.4.3",
  "hyperlane-core",
  "jsonrpc-core",

@@ -206,6 +206,11 @@ impl ChainConf {
 
                 Ok(Box::new(hook) as Box<dyn MerkleTreeHook>)
             }
+            ChainConnectionConf::Aptos(conf) => {
+                h_aptos::AptosMailbox::new(conf, locator, None)
+                    .map(|m| Box::new(m) as Box<dyn MerkleTreeHook>)
+                    .map_err(Into::into)
+            }
         }
         .context(ctx)
     }
@@ -424,6 +429,10 @@ impl ChainConf {
                     signer,
                     self.reorg_period,
                 )?);
+                Ok(indexer as Box<dyn SequenceIndexer<MerkleTreeInsertion>>)
+            }
+            ChainConnectionConf::Aptos(_) => {
+                let indexer = Box::new(h_aptos::AptosMerkleTreeHookIndexer::new());
                 Ok(indexer as Box<dyn SequenceIndexer<MerkleTreeInsertion>>)
             }
             // TODO: add tree_hook_indexer

@@ -14,7 +14,7 @@ use tracing::{debug, info, instrument, warn};
 use hyperlane_core::{
     accumulator::incremental::IncrementalMerkle, ChainCommunicationError, ChainResult, Checkpoint,
     ContractLocator, Decode as _, Encode as _, HyperlaneAbi, HyperlaneChain, HyperlaneContract,
-    HyperlaneDomain, HyperlaneMessage, HyperlaneProvider, Indexer, LogMeta, Mailbox,
+    MerkleTreeHook, HyperlaneDomain, HyperlaneMessage, HyperlaneProvider, Indexer, LogMeta, Mailbox,
     TxCostEstimate, TxOutcome, H256, H512, U256,
 };
 
@@ -50,10 +50,10 @@ use aptos_sdk::{
 
 /// A reference to a Mailbox contract on some Aptos chain
 pub struct AptosMailbox {
-    domain: HyperlaneDomain,
+    pub(crate) domain: HyperlaneDomain,
     payer: Option<Keypair>,
-    aptos_client: AptosClient,
-    package_address: AccountAddress,
+    pub(crate) aptos_client: AptosClient,
+    pub(crate) package_address: AccountAddress,
 }
 
 impl AptosMailbox {
@@ -122,17 +122,7 @@ impl std::fmt::Debug for AptosMailbox {
 impl Mailbox for AptosMailbox {
     #[instrument(err, ret, skip(self))]
     async fn count(&self, _maybe_lag: Option<NonZeroU64>) -> ChainResult<u32> {
-        let view_response = utils::send_view_request(
-            &self.aptos_client,
-            self.package_address.to_hex_literal(),
-            "mailbox".to_string(),
-            "outbox_get_count".to_string(),
-            vec![],
-            vec![],
-        )
-        .await?;
-        let view_result = serde_json::from_str::<u32>(&view_response[0].to_string()).unwrap();
-        Ok(view_result)
+        <Self as MerkleTreeHook>::count(self, _maybe_lag).await
     }
 
     #[instrument(err, ret, skip(self))]
@@ -148,46 +138,6 @@ impl Mailbox for AptosMailbox {
         .await?;
         let view_result = serde_json::from_str::<bool>(&view_response[0].to_string()).unwrap();
         Ok(view_result)
-    }
-
-    #[instrument(err, ret, skip(self))]
-    async fn tree(&self, lag: Option<NonZeroU64>) -> ChainResult<IncrementalMerkle> {
-        let view_response = utils::send_view_request(
-            &self.aptos_client,
-            self.package_address.to_hex_literal(),
-            "mailbox".to_string(),
-            "outbox_get_tree".to_string(),
-            vec![],
-            vec![],
-        )
-        .await?;
-        let view_result =
-            serde_json::from_str::<MoveMerkleTree>(&view_response[0].to_string()).unwrap();
-        Ok(view_result.into())
-    }
-
-    #[instrument(err, ret, skip(self))]
-    async fn latest_checkpoint(&self, lag: Option<NonZeroU64>) -> ChainResult<Checkpoint> {
-        let tree = self.tree(lag).await?;
-
-        let root = tree.root();
-        let count: u32 = tree
-            .count()
-            .try_into()
-            .map_err(ChainCommunicationError::from_other)?;
-        let index = count.checked_sub(1).ok_or_else(|| {
-            ChainCommunicationError::from_contract_error_str(
-                "Outbox is empty, cannot compute checkpoint",
-            )
-        })?;
-
-        let checkpoint = Checkpoint {
-            mailbox_address: H256::from_str(&self.package_address.to_hex()).unwrap(),
-            mailbox_domain: self.domain.id(),
-            root,
-            index,
-        };
-        Ok(checkpoint)
     }
 
     #[instrument(err, ret, skip(self))]
@@ -360,7 +310,7 @@ impl SequenceIndexer<HyperlaneMessage> for AptosMailboxIndexer {
     #[instrument(err, skip(self))]
     async fn sequence_and_tip(&self) -> ChainResult<(Option<u32>, u32)> {
         let tip = Indexer::<HyperlaneMessage>::get_finalized_block_number(self as _).await?;
-        let count = self.mailbox.count(None).await?;
+        let count = Mailbox::count(&self.mailbox, None).await?;
         Ok((Some(count), tip))
     }
 }
