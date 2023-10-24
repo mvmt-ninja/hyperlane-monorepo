@@ -29,7 +29,7 @@ impl From<MoveMerkleTree> for IncrementalMerkle {
         }
         let count = val.count.parse::<usize>().unwrap();
 
-        IncrementalMerkle::plant(branches[0..TREE_DEPTH].try_into().unwrap(), count)
+        IncrementalMerkle::duplicate(branches[0..TREE_DEPTH].try_into().unwrap(), count)
     }
 }
 
@@ -82,6 +82,8 @@ impl TryInto<HyperlaneMessage> for DispatchEventData {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 /// Move Value Data of GasPayment Event
 pub struct GasPaymentEventData {
+    /// dest domain the gas is paid for
+    pub dest_domain: String,
     /// hyperlane message id
     pub message_id: String,
     /// gas amount
@@ -106,6 +108,7 @@ impl TryInto<InterchainGasPayment> for GasPaymentEventData {
     type Error = ChainCommunicationError;
     fn try_into(self) -> Result<InterchainGasPayment, Self::Error> {
         Ok(InterchainGasPayment {
+            destination: self.dest_domain.parse::<u32>().unwrap(),
             message_id: utils::convert_hex_string_to_h256(&self.message_id).unwrap(),
             payment: U256::from_str(&self.required_amount)
                 .map_err(ChainCommunicationError::from_other)

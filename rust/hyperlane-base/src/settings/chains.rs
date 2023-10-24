@@ -180,6 +180,11 @@ impl ChainConf {
                     .map(|m| Box::new(m) as Box<dyn MerkleTreeHook>)
                     .map_err(Into::into)
             }
+            ChainConnectionConf::Aptos(conf) => {
+                h_aptos::AptosMailbox::new(conf, locator, None)
+                    .map(|m| Box::new(m) as Box<dyn MerkleTreeHook>)
+                    .map_err(Into::into)
+            }
             // TODO: add merkle tree hook
         }
         .context(ctx)
@@ -354,6 +359,10 @@ impl ChainConf {
             ChainConnectionConf::Fuel(_) => todo!(),
             ChainConnectionConf::Sealevel(_) => {
                 let indexer = Box::new(h_sealevel::SealevelMerkleTreeHookIndexer::new());
+                Ok(indexer as Box<dyn SequenceIndexer<MerkleTreeInsertion>>)
+            }
+            ChainConnectionConf::Aptos(_) => {
+                let indexer = Box::new(h_aptos::AptosMerkleTreeHookIndexer::new());
                 Ok(indexer as Box<dyn SequenceIndexer<MerkleTreeInsertion>>)
             }
             // TODO: add tree_hook_indexer
