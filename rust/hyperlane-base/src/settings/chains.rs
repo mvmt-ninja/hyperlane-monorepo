@@ -3,8 +3,12 @@ use h_cosmos::CosmosProvider;
 use std::collections::HashMap;
 
 use eyre::{eyre, Context, Result};
+<<<<<<< HEAD
 
 use ethers_prometheus::middleware::{ChainInfo, ContractInfo, PrometheusMiddlewareConf};
+=======
+use hyperlane_aptos as h_aptos;
+>>>>>>> feat: aptos e2e test for v3
 use hyperlane_core::{
     AggregationIsm, CcipReadIsm, ContractLocator, HyperlaneAbi, HyperlaneDomain,
     HyperlaneDomainProtocol, HyperlaneMessage, HyperlaneProvider, IndexMode,
@@ -17,7 +21,6 @@ use hyperlane_ethereum::{
     self as h_eth, BuildableWithProvider, EthereumInterchainGasPaymasterAbi, EthereumMailboxAbi,
     EthereumValidatorAnnounceAbi,
 };
-use hyperlane_aptos as h_aptos;
 use hyperlane_fuel as h_fuel;
 use hyperlane_sealevel as h_sealevel;
 
@@ -434,8 +437,7 @@ impl ChainConf {
             ChainConnectionConf::Aptos(_) => {
                 let indexer = Box::new(h_aptos::AptosMerkleTreeHookIndexer::new());
                 Ok(indexer as Box<dyn SequenceIndexer<MerkleTreeInsertion>>)
-            }
-            // TODO: add tree_hook_indexer
+            } // TODO: add tree_hook_indexer
         }
         .context(ctx)
     }
@@ -717,6 +719,7 @@ impl ChainConf {
         self.signer().await
     }
 
+<<<<<<< HEAD
     /// Try to build an agent metrics configuration from the chain config
     pub async fn agent_metrics_conf(&self, agent_name: String) -> Result<AgentMetricsConf> {
         let chain_signer_address = self.chain_signer().await?.map(|s| s.address_string());
@@ -726,6 +729,8 @@ impl ChainConf {
             name: agent_name,
         })
     }
+=======
+>>>>>>> feat: aptos e2e test for v3
     /// Get a clone of the ethereum metrics conf with correctly configured
     /// contract information.
     pub fn metrics_conf(&self) -> PrometheusMiddlewareConf {
