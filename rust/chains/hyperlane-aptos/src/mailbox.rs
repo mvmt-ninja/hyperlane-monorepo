@@ -14,8 +14,8 @@ use tracing::{debug, info, instrument, warn};
 use hyperlane_core::{
     accumulator::incremental::IncrementalMerkle, ChainCommunicationError, ChainResult, Checkpoint,
     ContractLocator, Decode as _, Encode as _, HyperlaneAbi, HyperlaneChain, HyperlaneContract,
-    MerkleTreeHook, HyperlaneDomain, HyperlaneMessage, HyperlaneProvider, Indexer, LogMeta, Mailbox,
-    TxCostEstimate, TxOutcome, H256, H512, U256,
+    HyperlaneDomain, HyperlaneMessage, HyperlaneProvider, Indexer, LogMeta, Mailbox,
+    MerkleTreeHook, TxCostEstimate, TxOutcome, H256, H512, U256,
 };
 
 use crate::{
@@ -88,7 +88,8 @@ impl AptosMailbox {
         .await?;
 
         let module_name = serde_json::from_str::<String>(&view_response[0].to_string()).unwrap();
-        let module_name_bytes = hex::decode(module_name.to_string().trim_start_matches("0x")).unwrap();
+        let module_name_bytes =
+            hex::decode(module_name.to_string().trim_start_matches("0x")).unwrap();
         Ok(module_name_bytes)
     }
 }

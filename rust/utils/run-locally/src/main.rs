@@ -27,10 +27,10 @@ use program::Program;
 use tempfile::tempdir;
 
 use crate::{
+    aptos::*,
     config::Config,
     ethereum::start_anvil,
     invariants::termination_invariants_met,
-    aptos::*,
     solana::*,
     utils::{concat_path, make_static, stop_child, AgentHandles, ArbitraryData, TaskHandle},
 };
@@ -184,20 +184,18 @@ fn main() -> ExitCode {
         .hyp_env("CHAINS_TEST2_SIGNER_KEY", RELAYER_KEYS[1])
         // .hyp_env("CHAINS_SEALEVELTEST1_SIGNER_KEY", RELAYER_KEYS[3])
         // .hyp_env("CHAINS_SEALEVELTEST2_SIGNER_KEY", RELAYER_KEYS[4])
-        
         .hyp_env("CHAINS_APTOSLOCALNET1_SIGNER_KEY", RELAYER_KEYS[5])
         .hyp_env("CHAINS_APTOSLOCALNET2_SIGNER_KEY", RELAYER_KEYS[6])
-        .hyp_env("CHAINS_APTOSLOCALNET1_CONNECTION_TYPE", "httpFallback")
-        .hyp_env("CHAINS_APTOSLOCALNET2_CONNECTION_TYPE", "httpFallback")
+        .hyp_env("CHAINS_APTOSLOCALNET1_RPCCONSENSUSTYPE", "httpFallback")
+        .hyp_env("CHAINS_APTOSLOCALNET2_RPCCONSENSUSTYPE", "httpFallback")
         .hyp_env(
-            "CHAINS_APTOSLOCALNET1_CONNECTION_URL",
+            "CHAINS_APTOSLOCALNET1_CONNECTION_URLS",
             "http://127.0.0.1:8080/v1",
         )
         .hyp_env(
-            "CHAINS_APTOSLOCALNET2_CONNECTION_URL",
+            "CHAINS_APTOSLOCALNET2_CONNECTION_URLS",
             "http://127.0.0.1:8080/v1",
         )
-
         .hyp_env("RELAYCHAINS", "invalidchain,otherinvalid")
         .hyp_env("ALLOWLOCALCHECKPOINTSYNCERS", "true")
         .hyp_env(
@@ -243,18 +241,10 @@ fn main() -> ExitCode {
         )
         .hyp_env("CHAINS_TEST2_RPCCONSENSUSTYPE", "fallback")
         .hyp_env("CHAINS_TEST3_CUSTOMRPCURLS", "http://127.0.0.1:8545")
-
-        .hyp_env("CHAINS_APTOSLOCALNET1_CONNECTION_TYPE", "httpFallback")
-        .hyp_env("CHAINS_APTOSLOCALNET2_CONNECTION_TYPE", "httpFallback")
-        .hyp_env(
-            "CHAINS_APTOSLOCALNET1_CONNECTION_URL",
-            "http://127.0.0.1:8080/v1",
-        )
-        .hyp_env(
-            "CHAINS_APTOSLOCALNET2_CONNECTION_URL",
-            "http://127.0.0.1:8080/v1",
-        )
-
+        .hyp_env("CHAINS_APTISLOCALNET1_RPCCONSENSUSTYPE", "httpFallback")
+        .hyp_env("CHAINS_APTOSLOCALNET2_RPCCONSENSUSTYPE", "httpFallback")
+        .hyp_env("CHAINS_APTOSLOCALNET1_SIGNER_KEY", VALIDATOR_KEYS[0])
+        .hyp_env("CHAINS_APTOSLOCALNET2_SIGNER_KEY", VALIDATOR_KEYS[1])
         .hyp_env("CHAINS_TEST1_BLOCKS_REORGPERIOD", "0")
         .hyp_env("CHAINS_TEST2_BLOCKS_REORGPERIOD", "0")
         .hyp_env("CHAINS_TEST3_BLOCKS_REORGPERIOD", "0")
@@ -309,7 +299,7 @@ fn main() -> ExitCode {
     //
     // Ready to run...
     //
-    
+
     install_aptos_cli().join();
     // let aptos_local_net_runner = start_aptos_local_testnet().join();
     // state.push_agent(aptos_local_net_runner);
@@ -359,7 +349,7 @@ fn main() -> ExitCode {
 
     // let (_solana_config_path, solana_validator) = start_solana_validator.join();
     // state.push_agent(solana_validator);
-    state.push_agent(start_anvil.join());
+    // state.push_agent(start_anvil.join());
 
     // spawn 1st validator before any messages have been sent to test empty mailbox
     state.push_agent(validator_envs.first().unwrap().clone().spawn("VL1"));
@@ -431,7 +421,7 @@ fn main() -> ExitCode {
     // Send half the kathy messages after the relayer comes up
     // kathy_env_double_insertion.clone().run().join();
     // kathy_env_zero_insertion.clone().run().join();
-    state.push_agent(kathy_env_single_insertion.flag("mineforever").spawn("KTY"));
+    // state.push_agent(kathy_env_single_insertion.flag("mineforever").spawn("KTY"));
 
     let loop_start = Instant::now();
     // give things a chance to fully start.

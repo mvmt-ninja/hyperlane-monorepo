@@ -5,6 +5,7 @@ use ethers_prometheus::middleware::{
     ChainInfo, ContractInfo, PrometheusMiddlewareConf, WalletInfo,
 };
 use eyre::{eyre, Context, Result};
+use hyperlane_aptos as h_aptos;
 use hyperlane_core::{
     AggregationIsm, CcipReadIsm, ContractLocator, HyperlaneAbi, HyperlaneDomain,
     HyperlaneDomainProtocol, HyperlaneMessage, HyperlaneProvider, HyperlaneSigner, IndexMode,
@@ -16,7 +17,6 @@ use hyperlane_ethereum::{
     self as h_eth, BuildableWithProvider, EthereumInterchainGasPaymasterAbi, EthereumMailboxAbi,
     EthereumValidatorAnnounceAbi,
 };
-use hyperlane_aptos as h_aptos;
 use hyperlane_fuel as h_fuel;
 use hyperlane_sealevel as h_sealevel;
 
@@ -180,12 +180,9 @@ impl ChainConf {
                     .map(|m| Box::new(m) as Box<dyn MerkleTreeHook>)
                     .map_err(Into::into)
             }
-            ChainConnectionConf::Aptos(conf) => {
-                h_aptos::AptosMailbox::new(conf, locator, None)
-                    .map(|m| Box::new(m) as Box<dyn MerkleTreeHook>)
-                    .map_err(Into::into)
-            }
-            // TODO: add merkle tree hook
+            ChainConnectionConf::Aptos(conf) => h_aptos::AptosMailbox::new(conf, locator, None)
+                .map(|m| Box::new(m) as Box<dyn MerkleTreeHook>)
+                .map_err(Into::into), // TODO: add merkle tree hook
         }
         .context(ctx)
     }
@@ -364,8 +361,7 @@ impl ChainConf {
             ChainConnectionConf::Aptos(_) => {
                 let indexer = Box::new(h_aptos::AptosMerkleTreeHookIndexer::new());
                 Ok(indexer as Box<dyn SequenceIndexer<MerkleTreeInsertion>>)
-            }
-            // TODO: add tree_hook_indexer
+            } // TODO: add tree_hook_indexer
         }
         .context(ctx)
     }
@@ -579,7 +575,7 @@ impl ChainConf {
     async fn aptos_signer(&self) -> Result<Option<h_aptos::Keypair>> {
         self.signer().await
     }
-    
+
     /// Get a clone of the ethereum metrics conf with correctly configured
     /// contract information.
     fn metrics_conf(

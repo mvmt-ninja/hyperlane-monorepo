@@ -1,31 +1,27 @@
-use std::str::FromStr;
-use std::{num::NonZeroU64, ops::RangeInclusive};
+use crate::types::*;
+use crate::utils;
+use crate::AptosMailbox;
 use async_trait::async_trait;
 use derive_new::new;
 use hyperlane_core::{
     accumulator::incremental::IncrementalMerkle, ChainCommunicationError, ChainResult, Checkpoint,
-    Indexer, LogMeta, MerkleTreeHook, MerkleTreeInsertion, SequenceIndexer, H256
+    Indexer, LogMeta, MerkleTreeHook, MerkleTreeInsertion, SequenceIndexer, H256,
 };
+use std::str::FromStr;
+use std::{num::NonZeroU64, ops::RangeInclusive};
 use tracing::instrument;
-use crate::AptosMailbox;
-use crate::utils;
-use crate::types::*;
 
 #[async_trait]
 impl MerkleTreeHook for AptosMailbox {
     #[instrument(err, ret, skip(self))]
-    async fn tree(&self, lag: Option<NonZeroU64>) -> ChainResult<IncrementalMerkle> {
-        assert!(
-            lag.is_none(),
-            "Aptos does not support querying point-in-time"
-        );
+    async fn tree(&self, _lag: Option<NonZeroU64>) -> ChainResult<IncrementalMerkle> {
         let view_response = utils::send_view_request(
-          &self.aptos_client,
-          self.package_address.to_hex_literal(),
-          "mailbox".to_string(),
-          "outbox_get_tree".to_string(),
-          vec![],
-          vec![],
+            &self.aptos_client,
+            self.package_address.to_hex_literal(),
+            "mailbox".to_string(),
+            "outbox_get_tree".to_string(),
+            vec![],
+            vec![],
         )
         .await?;
         let view_result =
@@ -35,10 +31,6 @@ impl MerkleTreeHook for AptosMailbox {
 
     #[instrument(err, ret, skip(self))]
     async fn latest_checkpoint(&self, lag: Option<NonZeroU64>) -> ChainResult<Checkpoint> {
-        assert!(
-            lag.is_none(),
-            "Aptos does not support querying point-in-time"
-        );
         let tree = self.tree(lag).await?;
 
         let root = tree.root();
