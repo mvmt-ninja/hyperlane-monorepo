@@ -33,8 +33,8 @@ pub struct ChainConf {
     pub domain: HyperlaneDomain,
     /// Signer configuration for this chain
     pub signer: Option<SignerConf>,
-    /// Number of blocks until finality
-    pub finality_blocks: u32,
+    /// The reorg period of the chain, i.e. the number of blocks until finality
+    pub reorg_period: u32,
     /// Addresses of contracts on the chain
     pub addresses: CoreContractAddresses,
     /// The chain connection details
@@ -202,7 +202,7 @@ impl ChainConf {
                     &locator,
                     metrics,
                     h_eth::SequenceIndexerBuilder {
-                        finality_blocks: self.finality_blocks,
+                        reorg_period: self.reorg_period,
                     },
                 )
                 .await
@@ -236,7 +236,7 @@ impl ChainConf {
                     &locator,
                     metrics,
                     h_eth::DeliveryIndexerBuilder {
-                        finality_blocks: self.finality_blocks,
+                        reorg_period: self.reorg_period,
                     },
                 )
                 .await
@@ -306,7 +306,7 @@ impl ChainConf {
                     metrics,
                     h_eth::InterchainGasPaymasterIndexerBuilder {
                         mailbox_address: self.addresses.mailbox.into(),
-                        finality_blocks: self.finality_blocks,
+                        reorg_period: self.reorg_period,
                     },
                 )
                 .await
@@ -348,7 +348,7 @@ impl ChainConf {
                     &locator,
                     metrics,
                     h_eth::MerkleTreeHookIndexerBuilder {
-                        finality_blocks: self.finality_blocks,
+                        reorg_period: self.reorg_period,
                     },
                 )
                 .await

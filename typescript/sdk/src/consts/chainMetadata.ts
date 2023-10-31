@@ -426,16 +426,13 @@ export const scrollsepolia: ChainMetadata = {
   protocol: ProtocolType.Ethereum,
   displayName: 'Scroll Sepolia',
   nativeToken: etherToken,
-  rpcUrls: [
-    { http: 'https://sepolia-rpc.scroll.io' },
-    { http: 'https://scroll-public.scroll-testnet.quiknode.pro' },
-  ],
+  rpcUrls: [{ http: 'https://sepolia-rpc.scroll.io' }],
   blockExplorers: [
     {
       name: 'Scroll Explorer',
-      url: 'https://sepolia-blockscout.scroll.io',
-      apiUrl: 'https://sepolia-blockscout.scroll.io/api',
-      family: ExplorerFamily.Blockscout,
+      url: 'https://sepolia.scrollscan.dev/',
+      apiUrl: 'https://api-sepolia.scrollscan.com/api',
+      family: ExplorerFamily.Etherscan,
     },
   ],
   blocks: {
