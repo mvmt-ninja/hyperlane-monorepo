@@ -2,7 +2,7 @@
   "chains": {
     "aptoslocalnet1": {
       "name": "aptoslocalnet1",
-      "domain": 14411,
+      "domainId": 14411,
       "chainId": 14411,
       "mailbox": "0x476307c25c54b76b331a4e3422ae293ada422f5455efed1553cf4de1222a108f",
       "interchainGasPaymaster": "0xc5cb1f1ce6951226e9c46ce8d42eda1ac9774a0fef91e2910939119ef0c95568",
@@ -20,7 +20,7 @@
     },
     "aptoslocalnet2": {
       "name": "aptoslocalnet2",
-      "domain": 14412,
+      "domainId": 14412,
       "chainId": 14412,
       "mailbox": "0xd338e68ca12527e77cab474ee8ec91ffa4e6512ced9ae8f47e28c5c7c4804b78",
       "interchainGasPaymaster": "0xea7d568d0705450331a8f09fd1c823faec91f4ef1c7e6ed4b12c0c53d0c08bc8",
