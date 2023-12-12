@@ -5,6 +5,7 @@ use ethers_prometheus::middleware::{
     ChainInfo, ContractInfo, PrometheusMiddlewareConf, WalletInfo,
 };
 use eyre::{eyre, Context, Result};
+use hyperlane_aptos as h_aptos;
 use hyperlane_core::{
     AggregationIsm, CcipReadIsm, ContractLocator, HyperlaneAbi, HyperlaneDomain,
     HyperlaneDomainProtocol, HyperlaneMessage, HyperlaneProvider, HyperlaneSigner, IndexMode,
@@ -16,7 +17,6 @@ use hyperlane_ethereum::{
     self as h_eth, BuildableWithProvider, EthereumInterchainGasPaymasterAbi, EthereumMailboxAbi,
     EthereumValidatorAnnounceAbi,
 };
-use hyperlane_aptos as h_aptos;
 use hyperlane_fuel as h_fuel;
 use hyperlane_sealevel as h_sealevel;
 
@@ -33,8 +33,8 @@ pub struct ChainConf {
     pub domain: HyperlaneDomain,
     /// Signer configuration for this chain
     pub signer: Option<SignerConf>,
-    /// Number of blocks until finality
-    pub finality_blocks: u32,
+    /// The reorg period of the chain, i.e. the number of blocks until finality
+    pub reorg_period: u32,
     /// Addresses of contracts on the chain
     pub addresses: CoreContractAddresses,
     /// The chain connection details
@@ -180,12 +180,9 @@ impl ChainConf {
                     .map(|m| Box::new(m) as Box<dyn MerkleTreeHook>)
                     .map_err(Into::into)
             }
-            ChainConnectionConf::Aptos(conf) => {
-                h_aptos::AptosMailbox::new(conf, locator, None)
-                    .map(|m| Box::new(m) as Box<dyn MerkleTreeHook>)
-                    .map_err(Into::into)
-            }
-            // TODO: add merkle tree hook
+            ChainConnectionConf::Aptos(conf) => h_aptos::AptosMailbox::new(conf, locator, None)
+                .map(|m| Box::new(m) as Box<dyn MerkleTreeHook>)
+                .map_err(Into::into), // TODO: add merkle tree hook
         }
         .context(ctx)
     }
@@ -205,7 +202,7 @@ impl ChainConf {
                     &locator,
                     metrics,
                     h_eth::SequenceIndexerBuilder {
-                        finality_blocks: self.finality_blocks,
+                        reorg_period: self.reorg_period,
                     },
                 )
                 .await
@@ -239,7 +236,7 @@ impl ChainConf {
                     &locator,
                     metrics,
                     h_eth::DeliveryIndexerBuilder {
-                        finality_blocks: self.finality_blocks,
+                        reorg_period: self.reorg_period,
                     },
                 )
                 .await
@@ -309,7 +306,7 @@ impl ChainConf {
                     metrics,
                     h_eth::InterchainGasPaymasterIndexerBuilder {
                         mailbox_address: self.addresses.mailbox.into(),
-                        finality_blocks: self.finality_blocks,
+                        reorg_period: self.reorg_period,
                     },
                 )
                 .await
@@ -351,7 +348,7 @@ impl ChainConf {
                     &locator,
                     metrics,
                     h_eth::MerkleTreeHookIndexerBuilder {
-                        finality_blocks: self.finality_blocks,
+                        reorg_period: self.reorg_period,
                     },
                 )
                 .await
@@ -364,8 +361,7 @@ impl ChainConf {
             ChainConnectionConf::Aptos(_) => {
                 let indexer = Box::new(h_aptos::AptosMerkleTreeHookIndexer::new());
                 Ok(indexer as Box<dyn SequenceIndexer<MerkleTreeInsertion>>)
-            }
-            // TODO: add tree_hook_indexer
+            } // TODO: add tree_hook_indexer
         }
         .context(ctx)
     }
@@ -579,7 +575,7 @@ impl ChainConf {
     async fn aptos_signer(&self) -> Result<Option<h_aptos::Keypair>> {
         self.signer().await
     }
-    
+
     /// Get a clone of the ethereum metrics conf with correctly configured
     /// contract information.
     fn metrics_conf(
