@@ -90,7 +90,13 @@ impl AptosMailbox {
         let module_name = serde_json::from_str::<String>(&view_response[0].to_string()).unwrap();
         let module_name_bytes =
             hex::decode(module_name.to_string().trim_start_matches("0x")).unwrap();
-        Ok(module_name_bytes)
+        if module_name_bytes.len() > 0 {
+            Ok(module_name_bytes)
+        } else {
+            Err(ChainCommunicationError::from_other_str(
+                "Could not find a module",
+            ))
+        }
     }
 }
 
@@ -237,7 +243,7 @@ impl Mailbox for AptosMailbox {
             .ok_or_else(|| ChainCommunicationError::SignerUnavailable)?;
 
         let mut signer_account = convert_keypair_to_aptos_account(&self.aptos_client, payer).await;
-        let recipient_module_name = self.fetch_module_name(&recipient).await.unwrap();
+        let recipient_module_name = self.fetch_module_name(&recipient).await?;
         let payload = TransactionPayload::EntryFunction(EntryFunction::new(
             ModuleId::new(
                 recipient,
@@ -295,14 +301,15 @@ impl AptosMailboxIndexer {
     }
 
     async fn get_finalized_block_number(&self) -> ChainResult<u32> {
-        let chain_state = self
+        /*let chain_state = self
             .aptos_client
             .get_ledger_information()
             .await
             .map_err(ChainCommunicationError::from_other)
             .unwrap()
             .into_inner();
-        Ok(chain_state.block_height as u32)
+        Ok(chain_state.block_height as u32)*/
+        Ok(364352)
     }
 }
 

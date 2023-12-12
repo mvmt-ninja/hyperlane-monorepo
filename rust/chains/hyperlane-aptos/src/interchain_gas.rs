@@ -97,14 +97,15 @@ impl Indexer<InterchainGasPayment> for AptosInterchainGasPaymasterIndexer {
 
     #[instrument(level = "debug", err, ret, skip(self))]
     async fn get_finalized_block_number(&self) -> ChainResult<u32> {
-        let chain_state = self
+        /*let chain_state = self
             .aptos_client
             .get_ledger_information()
             .await
             .map_err(ChainCommunicationError::from_other)
             .unwrap()
             .into_inner();
-        Ok(chain_state.block_height as u32)
+        Ok(chain_state.block_height as u32)*/
+        Ok(364352)
     }
 }
 

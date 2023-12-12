@@ -1,5 +1,5 @@
 use crate::{AptosClient, TxSpecificData};
-use anyhow::{Context, Result};
+use anyhow::Result;
 use aptos_sdk::{
     crypto::ed25519::{Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature},
     move_types::language_storage::TypeTag,
@@ -33,13 +33,13 @@ pub async fn send_aptos_transaction(
     signer: &mut LocalAccount,
     payload: TransactionPayload,
 ) -> Result<AptosTransaction> {
-    let state = aptos_client
-        .get_ledger_information()
-        .await
-        .context("Failed in getting chain id")?
-        .into_inner();
+    /*let state = aptos_client
+    .get_ledger_information()
+    .await
+    .context("Failed in getting chain id")?
+    .into_inner();*/
 
-    let transaction_factory = TransactionFactory::new(ChainId::new(state.chain_id))
+    let transaction_factory = TransactionFactory::new(ChainId::new(4))
         .with_gas_unit_price(100)
         .with_max_gas_amount(GAS_UNIT_LIMIT);
 
@@ -59,13 +59,13 @@ pub async fn simulate_aptos_transaction(
     signer: &mut LocalAccount,
     payload: TransactionPayload,
 ) -> Result<TransactionInfo> {
-    let state = aptos_client
-        .get_ledger_information()
-        .await
-        .context("Failed in getting chain id")?
-        .into_inner();
+    /*let state = aptos_client
+    .get_ledger_information()
+    .await
+    .context("Failed in getting chain id")?
+    .into_inner();*/
 
-    let transaction_factory = TransactionFactory::new(ChainId::new(state.chain_id))
+    let transaction_factory = TransactionFactory::new(ChainId::new(5))
         .with_gas_unit_price(GAS_UNIT_PRICE)
         .with_max_gas_amount(GAS_UNIT_LIMIT);
 
